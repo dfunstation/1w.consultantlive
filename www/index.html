@@ -210,8 +210,22 @@
               </div>
             </div>
           </div>
-
         </div>
+
+        <div class="menuhome" style="margin-top: 20px;min-height:150px">
+          <h3>Chat Tidak Terjawab</h3>
+          <div class="listkonsultan3">
+            <div id="load_data3"></div>
+            <div id="load_data_message3">
+              <!-- <div class="loading"> -->
+              <!-- <center><img src="img/loading.svg" /><br><b>Mohon menunggu</b><br>sedang menyiapkan daftar <br>chat
+                  terbaru</center> -->
+              <!-- </div> -->
+            </div>
+          </div>
+        </div>
+
+
 
         <div class="menuhome" style="margin-top: 20px;">
           <h3>Chat Konsultasi Umum</h3>
@@ -405,9 +419,64 @@
 
             }
           });
+
+          // Riwayat konsultasi
+          var urls2 = "https://www.dfunstation.com/api4/consultant/index.php/konsultasi/chat-konsultan-loked/" + localStorage.userid + "/0/3/0/peer/?callback=?";
+          $.ajax({
+            type: "POST",
+            url: urls2,
+            crossDomain: true,
+            cache: false,
+            success: function (data) {
+              if (data['status'] == "OK") {
+                var datalist = "";
+                var dl = data['datalist'];
+                var jml = dl.length;
+                if (jml > 0) {
+                  for (var key in dl) {
+                    if (dl.hasOwnProperty(key)) {
+                      datalist += '<div class="konsultan-item waves-effect waves-ripple animated fadein">';
+                      if (dl[key]["finish"] == 2) {
+                        datalist += '<div class="konsultan-item-img" onclick="deleteRiwayat(\'' + dl[key]["id"] + '\')">';
+                      } else {
+                        datalist += '<div class="konsultan-item-img" >';
+                      }
+                      datalist += '<div class="konsultan-item-imgbox"><img src="' + dl[key]["avatar"] + '"></div>';
+                      datalist += '</div>';
+                      if (dl[key]["finish"] == 2) {
+                        datalist += '<div class="konsultan-item-info" onclick="deleteRiwayat(\'' + dl[key]["id"] + '\')">';
+                      } else {
+                        datalist += '<div class="konsultan-item-info" >';
+                      }
+                      datalist += '<span class="chatnama">' + dl[key]["nama"] + '</span><br>';
+                      datalist += '<span>' + dl[key]["notif"] + '</span><br>';
+                      datalist += '</div>';
+                      datalist += '<div class="konsultan-item-status">';
+
+                      if (dl[key]["finish"] == 2) datalist += '<div class="konsultan-item-status-online" onclick="deleteRiwayat(\'' + dl[key]["id"] + '\')"><i class="fal fa-times"></i></div>';
+                      else datalist += '<div class="konsultan-item-status-offline" ><i class="fal fa-check-double"></i></div>';
+                      datalist += '</div></div>';
+                    }
+                  }
+                  // datalist += '<div class="konsultan-item waves-effect waves-ripple animated fadein" onclick="fade(\'konsultan_sekolah.html\')">';
+                  // datalist += '<button class="waves-effect waves-light btn-large accent-color width-100 m-b-20 button button-block button-positive">Selengkapnya</button>';
+                  // datalist += '</div>';
+                  $("#load_data3").append(datalist);
+                  $('#load_data_message2').html("");
+                  delete (datalist);
+                }
+                else {
+                  $('#load_data_message3').html("<center><br><br>Saat ini tidak ada chat terbaru untuk anda</center>");
+                }
+              }
+            }
+          });
+
+
         });
 
         function confirm(i) {
+
           swal("Apakah Anda yakin akan konfirmasi konsultasi ini?", {
             buttons: {
               cancel: "Batal",
@@ -421,6 +490,37 @@
               switch (value) {
                 case "catch":
                   var urls = "https://www.dfunstation.com/api4/consultant/index.php/konsultasi/chat-confirm/" + i + "/?callback=?";
+                  $.ajax({
+                    type: "GET",
+                    url: urls,
+                    crossDomain: true,
+                    cache: false,
+                    success: function (data) {
+                      if (data['status'] == "OK") {
+                        fade('index.html');
+                      }
+                    }
+                  });
+                  break;
+                default:
+              }
+            });
+        }
+
+        function deleteRiwayat(i) {
+          swal("Anda tidak mengkonfirmasi chat ini, apakah anda ingin menghapusnya dari beranda?", {
+            buttons: {
+              cancel: "Batal",
+              catch: {
+                text: "Hapus",
+                value: "catch",
+              }
+            },
+          })
+            .then((value) => {
+              switch (value) {
+                case "catch":
+                  var urls = "https://www.dfunstation.com/api4/consultant/index.php/konsultasi/delete-riwayat/" + i + "/?callback=?";
                   $.ajax({
                     type: "GET",
                     url: urls,
